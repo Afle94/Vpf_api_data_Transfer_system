@@ -1,0 +1,32 @@
+# Virtual environment files
+Include/
+Lib/
+Scripts/
+pyvenv.cfg
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+
+# Django/local data
+*.sqlite3
+db.sqlite3
+media/
+staticfiles/
+
+# Logs
+*.log
+
+# Environment and secrets
+.env
+.env.*
+
+# IDE/editor
+.idea/
+.vscode/
+
+# OS
+Thumbs.db
+.DS_Store

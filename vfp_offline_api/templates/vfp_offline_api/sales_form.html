@@ -1,0 +1,132 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Edit Sale</title>
+    <link rel="icon" type="image/svg+xml" href="{% static 'vfp_offline_api/images/favicon.svg' %}">
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, Helvetica, sans-serif;
+            color: #172033;
+            background: #eef3f8;
+        }
+
+        .topbar {
+            min-height: 64px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 28px;
+            background: #fff;
+            border-bottom: 1px solid #d8dee8;
+        }
+
+        .brand {
+            font-weight: 700;
+        }
+
+        .back {
+            color: #fff;
+            background: #1769aa;
+            text-decoration: none;
+            padding: 10px 14px;
+            font-size: 13px;
+            font-weight: 700;
+        }
+
+        main {
+            width: min(760px, calc(100vw - 32px));
+            margin: 28px auto;
+            padding: 28px;
+            background: #fff;
+            border: 1px solid #d8dee8;
+        }
+
+        h1 {
+            margin: 0 0 22px;
+            font-size: 26px;
+            letter-spacing: 0;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 7px;
+            font-size: 13px;
+            font-weight: 700;
+            color: #344054;
+        }
+
+        .field-input {
+            width: 100%;
+            height: 42px;
+            border: 1px solid #c9d3df;
+            padding: 0 11px;
+            font-size: 14px;
+            box-sizing: border-box;
+        }
+
+        .error {
+            margin-top: 6px;
+            color: #b42318;
+            font-size: 12px;
+        }
+
+        .actions {
+            display: flex;
+            gap: 12px;
+            margin-top: 24px;
+        }
+
+        button {
+            min-height: 44px;
+            padding: 0 18px;
+            border: 0;
+            background: #2f855a;
+            color: #fff;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        @media (max-width: 640px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="topbar">
+        <div class="brand">VFP Sales Sync</div>
+        <a class="back" href="{% url 'records' %}">Back</a>
+    </header>
+    <main>
+        <h1>Edit Voucher {{ record.Voucher_no }}</h1>
+        <form method="post">
+            {% csrf_token %}
+            <div class="grid">
+                {% for field in form %}
+                    <div>
+                        <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                        {{ field }}
+                        {% for error in field.errors %}
+                            <div class="error">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+                {% endfor %}
+            </div>
+            <div class="actions">
+                <button type="submit">Save Changes</button>
+            </div>
+        </form>
+    </main>
+</body>
+</html>

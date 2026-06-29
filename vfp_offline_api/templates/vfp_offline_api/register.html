@@ -1,0 +1,202 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Register User</title>
+    <link rel="icon" type="image/svg+xml" href="{% static 'vfp_offline_api/images/favicon.svg' %}">
+    <style>
+        :root {
+            --ink: #142033;
+            --muted: #667085;
+            --line: #d7e0ea;
+            --brand: #1769aa;
+            --brand-dark: #0f4d7e;
+            --page: #eef3f8;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            display: grid;
+            place-items: center;
+            font-family: Arial, Helvetica, sans-serif;
+            color: var(--ink);
+            background:
+                linear-gradient(135deg, rgba(23, 105, 170, 0.12), rgba(47, 133, 90, 0.1)),
+                var(--page);
+        }
+
+        .shell {
+            width: min(980px, calc(100vw - 32px));
+            min-height: 560px;
+            display: grid;
+            grid-template-columns: 0.9fr 1.1fr;
+            background: #fff;
+            border: 1px solid var(--line);
+            box-shadow: 0 24px 70px rgba(23, 32, 51, 0.15);
+        }
+
+        .visual {
+            padding: 36px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            color: #fff;
+            background:
+                linear-gradient(rgba(10, 37, 64, 0.84), rgba(10, 37, 64, 0.62)),
+                url("{% static 'vfp_offline_api/images/analytics-bg.png' %}") center / cover;
+        }
+
+        .mark {
+            width: 48px;
+            height: 48px;
+            display: grid;
+            place-items: center;
+            border: 2px solid rgba(255,255,255,0.68);
+            font-weight: 700;
+        }
+
+        .visual h1 {
+            margin: 24px 0 10px;
+            font-size: 34px;
+            line-height: 1.16;
+            letter-spacing: 0;
+        }
+
+        .visual p {
+            margin: 0;
+            color: rgba(255,255,255,0.82);
+            line-height: 1.6;
+            font-size: 15px;
+        }
+
+        .mini-stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1px;
+            background: rgba(255,255,255,0.24);
+            border: 1px solid rgba(255,255,255,0.24);
+        }
+
+        .mini-stats span {
+            padding: 12px;
+            background: rgba(255,255,255,0.12);
+            font-size: 12px;
+        }
+
+        .panel {
+            padding: 42px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .panel h2 {
+            margin: 0 0 6px;
+            font-size: 27px;
+            letter-spacing: 0;
+        }
+
+        .panel p {
+            margin: 0 0 22px;
+            color: var(--muted);
+            font-size: 14px;
+        }
+
+        label {
+            display: block;
+            margin: 14px 0 7px;
+            font-size: 13px;
+            font-weight: 700;
+            color: #344054;
+        }
+
+        input {
+            width: 100%;
+            height: 44px;
+            border: 1px solid #c9d3df;
+            padding: 0 12px;
+            font-size: 15px;
+            outline: none;
+        }
+
+        input:focus {
+            border-color: var(--brand);
+            box-shadow: 0 0 0 3px rgba(23, 105, 170, 0.14);
+        }
+
+        .error {
+            margin-top: 6px;
+            color: #b42318;
+            font-size: 12px;
+        }
+
+        .actions {
+            display: flex;
+            gap: 12px;
+            margin-top: 24px;
+        }
+
+        button, a {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 44px;
+            padding: 0 16px;
+            border: 0;
+            text-decoration: none;
+            font-weight: 700;
+            font-size: 14px;
+            cursor: pointer;
+        }
+
+        button { background: var(--brand); color: #fff; }
+        button:hover { background: var(--brand-dark); }
+        a { background: #eef3f8; color: #344054; }
+
+        @media (max-width: 780px) {
+            .shell { grid-template-columns: 1fr; }
+            .visual { min-height: 310px; }
+            .panel { padding: 30px; }
+        }
+    </style>
+</head>
+<body>
+    <main class="shell">
+        <section class="visual">
+            <div>
+                <div class="mark">VF</div>
+                <h1>User Registration</h1>
+                <p>Create dashboard access for sales sync monitoring and record management.</p>
+            </div>
+            <div class="mini-stats">
+                <span>Secure Login</span>
+                <span>Sales View</span>
+                <span>Bulk Tools</span>
+            </div>
+        </section>
+        <section class="panel">
+            <h2>Create User</h2>
+            <p>Register a new account for this software dashboard.</p>
+            <form method="post">
+                {% csrf_token %}
+                {% for field in form %}
+                    <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                    {{ field }}
+                    {% for error in field.errors %}
+                        <div class="error">{{ error }}</div>
+                    {% endfor %}
+                {% endfor %}
+                <div class="actions">
+                    <button type="submit">Register</button>
+                    <a href="{% url 'login' %}">Back to Login</a>
+                </div>
+            </form>
+        </section>
+    </main>
+</body>
+</html>

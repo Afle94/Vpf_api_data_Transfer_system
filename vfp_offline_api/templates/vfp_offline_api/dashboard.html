@@ -1,0 +1,634 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Sales Records</title>
+    <link rel="icon" type="image/svg+xml" href="{% static 'vfp_offline_api/images/favicon.svg' %}">
+    <style>
+        :root {
+            --ink: #142033;
+            --muted: #667085;
+            --line: #d7e0ea;
+            --panel: #ffffff;
+            --page: #eef3f8;
+            --brand: #1769aa;
+            --brand-dark: #0f4d7e;
+            --green: #2f855a;
+            --amber: #b7791f;
+            --danger: #b42318;
+            --steel: #475467;
+            --row-line: #edf1f5;
+            --button-muted-bg: #eef3f8;
+            --button-muted-text: #344054;
+            --input-bg: #ffffff;
+            --head-bg: #f7f9fc;
+            --hover-bg: #f8fbfe;
+            --topbar-bg: #ffffff;
+            --hero-border: #b7c6d8;
+            --modal-shadow: rgba(17, 24, 39, 0.28);
+            --overlay: rgba(15, 23, 42, 0.48);
+        }
+
+        body[data-theme="dark"] {
+            --ink: #e6edf7;
+            --muted: #a7b3c5;
+            --line: #27364a;
+            --panel: #111827;
+            --page: #0b1220;
+            --brand: #4da3df;
+            --brand-dark: #2f7eb8;
+            --green: #4fb477;
+            --amber: #d79a3d;
+            --danger: #d95d5d;
+            --steel: #8da2bd;
+            --row-line: #223047;
+            --button-muted-bg: #1c293b;
+            --button-muted-text: #d7e0ea;
+            --input-bg: #0f1726;
+            --head-bg: #172236;
+            --hover-bg: #142033;
+            --topbar-bg: #0f1726;
+            --hero-border: #314259;
+            --modal-shadow: rgba(0, 0, 0, 0.48);
+            --overlay: rgba(0, 0, 0, 0.64);
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            font-family: Arial, Helvetica, sans-serif;
+            color: var(--ink);
+            background: var(--page);
+        }
+
+        .topbar {
+            min-height: 64px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 18px;
+            padding: 0 28px;
+            background: var(--topbar-bg);
+            border-bottom: 1px solid var(--line);
+        }
+
+        .brand, .user-area, .row-actions, .page-links {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .brand { font-weight: 700; font-size: 17px; }
+
+        .brand-mark {
+            width: 36px;
+            height: 36px;
+            display: grid;
+            place-items: center;
+            background: var(--brand);
+            color: #fff;
+            font-size: 13px;
+        }
+
+        .brand-image {
+            width: 58px;
+            height: 36px;
+            object-fit: cover;
+            border: 1px solid var(--line);
+        }
+
+        .user-area { color: var(--muted); font-size: 14px; }
+
+        .button, button {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 36px;
+            padding: 0 12px;
+            border: 0;
+            text-decoration: none;
+            font-size: 13px;
+            font-weight: 700;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+
+        .primary { background: var(--brand); color: #fff; }
+        .primary:hover { background: var(--brand-dark); }
+        .muted { background: var(--button-muted-bg); color: var(--button-muted-text); }
+        .danger { background: var(--danger); color: #fff; }
+
+        .theme-toggle {
+            border: 0;
+            background: var(--button-muted-bg);
+            color: var(--button-muted-text);
+            cursor: pointer;
+        }
+
+        main {
+            width: min(1720px, calc(100vw - 36px));
+            margin: 24px auto;
+        }
+
+        .hero {
+            min-height: 230px;
+            display: grid;
+            align-items: end;
+            padding: 28px;
+            margin-bottom: 16px;
+            color: #fff;
+            background:
+                linear-gradient(90deg, rgba(10, 37, 64, 0.9), rgba(10, 37, 64, 0.62), rgba(10, 37, 64, 0.18)),
+                url("{% static 'vfp_offline_api/images/analytics-bg.png' %}") center / cover;
+            border: 1px solid var(--hero-border);
+        }
+
+        .hero h1 {
+            max-width: 620px;
+            margin: 0 0 8px;
+            font-size: 34px;
+            line-height: 1.16;
+            letter-spacing: 0;
+        }
+
+        .hero p {
+            max-width: 620px;
+            margin: 0;
+            color: rgba(255, 255, 255, 0.82);
+            font-size: 15px;
+            line-height: 1.6;
+        }
+
+        .metrics {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .metric, .stats-panel, .table-panel, .filter-form {
+            background: var(--panel);
+            border: 1px solid var(--line);
+        }
+
+        .metric {
+            min-height: 112px;
+            padding: 16px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .metric::after {
+            content: "";
+            position: absolute;
+            right: 14px;
+            bottom: 12px;
+            width: 54px;
+            height: 8px;
+            background: linear-gradient(90deg, var(--brand), var(--green));
+        }
+
+        .metric span {
+            display: block;
+            color: var(--muted);
+            font-size: 13px;
+            margin-bottom: 9px;
+        }
+
+        .metric strong {
+            display: block;
+            font-size: 25px;
+            line-height: 1.2;
+            overflow-wrap: anywhere;
+        }
+
+        .workspace {
+            display: block;
+        }
+
+        .records-area {
+            min-width: 0;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .filter-form {
+            display: grid;
+            grid-template-columns: minmax(220px, 1fr) 180px auto auto;
+            gap: 10px;
+            padding: 12px;
+            margin-bottom: 12px;
+        }
+
+        input, select {
+            height: 38px;
+            border: 1px solid #c9d3df;
+            padding: 0 10px;
+            font-size: 14px;
+            color: var(--ink);
+            background: var(--input-bg);
+        }
+
+        .panel-head {
+            min-height: 56px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            padding: 0 14px;
+            border-bottom: 1px solid var(--line);
+        }
+
+        .panel-head h2 {
+            margin: 0 0 3px;
+            font-size: 18px;
+            letter-spacing: 0;
+        }
+
+        .panel-head span, .stat-row small {
+            color: var(--muted);
+            font-size: 12px;
+        }
+
+        .table-wrap { overflow-x: auto; }
+
+        table {
+            width: 100%;
+            min-width: 0;
+            border-collapse: collapse;
+            table-layout: fixed;
+        }
+
+        th, td {
+            padding: 12px 10px;
+            border-bottom: 1px solid var(--row-line);
+            text-align: left;
+            font-size: 12px;
+            vertical-align: top;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        th {
+            background: var(--head-bg);
+            color: var(--ink);
+            font-weight: 700;
+        }
+
+        tbody tr:hover { background: var(--hover-bg); }
+        .amount-cell { text-align: right; font-variant-numeric: tabular-nums; }
+        .inline-form { display: inline; }
+
+        .check-col { width: 42px; }
+        .voucher-col { width: 82px; }
+        .vtype-col { width: 82px; }
+        .invoice-col { width: 72px; }
+        .account-col { width: 28%; }
+        .date-col { width: 84px; }
+        .amount-col { width: 100px; }
+        .mobile-col { width: 110px; }
+        .actions-col { width: 128px; }
+
+        .empty {
+            padding: 44px 18px;
+            text-align: center;
+            color: var(--muted);
+        }
+
+        .pagination {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            padding: 14px;
+            background: var(--panel);
+            border-top: 1px solid var(--line);
+            color: var(--muted);
+            font-size: 13px;
+        }
+
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 40;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 18px;
+            background: var(--overlay);
+        }
+
+        .modal-overlay.is-open {
+            display: flex;
+        }
+
+        .confirm-modal {
+            width: min(430px, 100%);
+            background: var(--panel);
+            color: var(--ink);
+            border: 1px solid var(--line);
+            box-shadow: 0 24px 70px var(--modal-shadow);
+        }
+
+        .confirm-modal header {
+            padding: 18px 20px 10px;
+            border-bottom: 1px solid var(--line);
+        }
+
+        .confirm-modal h2 {
+            margin: 0;
+            font-size: 19px;
+            letter-spacing: 0;
+        }
+
+        .confirm-modal p {
+            margin: 12px 20px 0;
+            color: var(--muted);
+            font-size: 14px;
+            line-height: 1.55;
+        }
+
+        .modal-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            padding: 20px;
+        }
+
+        @media (max-width: 1080px) {
+        }
+
+        @media (max-width: 920px) {
+            .topbar, .panel-head, .pagination {
+                align-items: flex-start;
+                flex-direction: column;
+            }
+
+            .topbar { padding: 16px; }
+            .metrics { grid-template-columns: repeat(2, 1fr); }
+            .filter-form { grid-template-columns: 1fr; }
+            .hero { min-height: 250px; padding: 22px; }
+            .hero h1 { font-size: 29px; }
+        }
+
+        @media (max-width: 560px) {
+            main { width: min(100vw - 24px, 1360px); }
+            .metrics { grid-template-columns: 1fr; }
+            .row-actions { flex-wrap: wrap; }
+        }
+    </style>
+</head>
+<body>
+    <header class="topbar">
+        <div class="brand">
+            <div class="brand-mark">VF</div>
+            <img class="brand-image" src="{% static 'vfp_offline_api/images/analytics-bg.png' %}" alt="Sales analytics">
+            <span>VFP Sales Sync</span>
+        </div>
+        <div class="user-area">
+            <span>{{ request.user.username }}</span>
+            <button class="button theme-toggle" type="button" id="theme-toggle">Night Mode</button>
+            <a class="button muted" href="{% url 'dashboard' %}">Dashboard</a>
+            <a class="button muted" href="{% url 'register' %}">Register</a>
+            <a class="button primary" href="{% url 'logout' %}">Logout</a>
+        </div>
+    </header>
+
+    <main>
+        <section class="hero">
+            <div>
+                <h1>Sales Records List</h1>
+                <p>Visual FoxPro se aaye records ko search, update, delete aur manage karo.</p>
+            </div>
+        </section>
+
+        <section class="metrics">
+            <div class="metric"><span>Total Records</span><strong>{{ summary.total_records|default:0 }}</strong></div>
+            <div class="metric"><span>Total Amount</span><strong>{{ summary.total_amount|default:"0.00"|floatformat:2 }}</strong></div>
+            <div class="metric"><span>Net Amount</span><strong>{{ summary.total_net_amount|default:"0.00"|floatformat:2 }}</strong></div>
+            <div class="metric"><span>Latest Date</span><strong>{{ summary.latest_transaction|date:"d/m/y"|default:"-" }}</strong></div>
+        </section>
+
+        <section class="workspace">
+            <div class="records-area">
+                <form class="filter-form" method="get">
+                    <input name="q" value="{{ query }}" placeholder="Search voucher, account, invoice, mobile">
+                    <select name="vtype">
+                        <option value="">All Vtypes</option>
+                        {% for item in vtypes %}
+                            <option value="{{ item }}" {% if item == selected_vtype %}selected{% endif %}>{{ item }}</option>
+                        {% endfor %}
+                    </select>
+                    <button class="primary" type="submit">Search</button>
+                    <a class="button muted" href="{% url 'records' %}">Clear</a>
+                </form>
+
+                <section class="table-panel">
+                    <form method="post" action="{% url 'sales_bulk_delete' %}">
+                        {% csrf_token %}
+                        <input type="hidden" name="q" value="{{ query }}">
+                        <input type="hidden" name="vtype" value="{{ selected_vtype }}">
+                        <div class="panel-head">
+                            <div>
+                                <h2>Sales Records</h2>
+                                <span>Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }} | {{ page_obj.paginator.count }} records found</span>
+                            </div>
+                            <div class="row-actions">
+                                <button class="danger confirm-action" name="delete_scope" value="selected" type="submit" data-confirm-title="Delete selected records?" data-confirm-message="This will permanently delete the selected sales records. This action cannot be undone.">Delete Selected</button>
+                                <button class="danger confirm-action" name="delete_scope" value="filtered" type="submit" data-confirm-title="Delete all found records?" data-confirm-message="This will permanently delete every record matching the current search and filter. This action cannot be undone.">Delete All Found</button>
+                            </div>
+                        </div>
+                        {% if records %}
+                            <div class="table-wrap">
+                                <table>
+                                    <thead>
+                                        <tr>
+                                            <th class="check-col"><input id="select-all" type="checkbox"></th>
+                                            <th class="voucher-col">Voucher</th>
+                                            <th class="vtype-col">Vtype</th>
+                                            <th class="invoice-col">Invoice</th>
+                                            <th class="account-col">Account</th>
+                                            <th class="date-col">Tran Date</th>
+                                            <th class="date-col">Rec Date</th>
+                                            <th class="amount-cell amount-col">Amount</th>
+                                            <th class="amount-cell amount-col">Net Amount</th>
+                                            <th class="mobile-col">Mobile</th>
+                                            <th class="actions-col">Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for row in records %}
+                                            <tr>
+                                                <td><input class="row-check" name="selected_ids" value="{{ row.id }}" type="checkbox"></td>
+                                                <td>{{ row.Voucher_no|default:"-" }}</td>
+                                                <td>{{ row.Vtype|default:"-" }}</td>
+                                                <td>{{ row.invoice_no|default:"-" }}</td>
+                                                <td>{{ row.Acno|default:"-" }}</td>
+                                                <td>{{ row.Trandate|date:"d/m/y"|default:"-" }}</td>
+                                                <td>{{ row.Recdate|date:"d/m/y"|default:"-" }}</td>
+                                                <td class="amount-cell">{{ row.Amount|default:"0.00"|floatformat:2 }}</td>
+                                                <td class="amount-cell">{{ row.Net_Amount|default:"0.00"|floatformat:2 }}</td>
+                                                <td>{{ row.Mobile_no|default:"-" }}</td>
+                                                <td>
+                                                    <div class="row-actions">
+                                                        <a class="button muted" href="{% url 'sales_edit' row.id %}">Edit</a>
+                                                        <button class="danger single-delete" type="button" data-action="{% url 'sales_delete' row.id %}" data-confirm-title="Delete this record?" data-confirm-message="This sales record will be permanently deleted. This action cannot be undone.">Delete</button>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div class="pagination">
+                                <span>Showing {{ page_obj.start_index }}-{{ page_obj.end_index }} of {{ page_obj.paginator.count }}</span>
+                                <div class="page-links">
+                                    {% if page_obj.has_previous %}
+                                        <a class="button muted" href="?q={{ query }}&vtype={{ selected_vtype }}&page=1">First</a>
+                                        <a class="button muted" href="?q={{ query }}&vtype={{ selected_vtype }}&page={{ page_obj.previous_page_number }}">Prev</a>
+                                    {% endif %}
+                                    {% if page_obj.has_next %}
+                                        <a class="button muted" href="?q={{ query }}&vtype={{ selected_vtype }}&page={{ page_obj.next_page_number }}">Next</a>
+                                        <a class="button muted" href="?q={{ query }}&vtype={{ selected_vtype }}&page={{ page_obj.paginator.num_pages }}">Last</a>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        {% else %}
+                            <div class="empty">No records found.</div>
+                        {% endif %}
+                    </form>
+                </section>
+            </div>
+
+        </section>
+    </main>
+
+    <div class="modal-overlay" id="confirm-overlay" aria-hidden="true">
+        <section class="confirm-modal" role="dialog" aria-modal="true" aria-labelledby="confirm-title">
+            <header>
+                <h2 id="confirm-title">Confirm Delete</h2>
+            </header>
+            <p id="confirm-message">This action cannot be undone.</p>
+            <div class="modal-actions">
+                <button class="button muted" type="button" id="confirm-cancel">Cancel</button>
+                <button class="button danger" type="button" id="confirm-delete">Delete</button>
+            </div>
+        </section>
+    </div>
+    <form id="single-delete-form" method="post" style="display: none;">
+        {% csrf_token %}
+    </form>
+
+    <script>
+        const applyTheme = (theme) => {
+            document.body.dataset.theme = theme;
+            localStorage.setItem('vfp-theme', theme);
+            const toggle = document.getElementById('theme-toggle');
+            if (toggle) {
+                toggle.textContent = theme === 'dark' ? 'Day Mode' : 'Night Mode';
+            }
+        };
+        applyTheme(localStorage.getItem('vfp-theme') || 'light');
+        document.getElementById('theme-toggle').addEventListener('click', () => {
+            applyTheme(document.body.dataset.theme === 'dark' ? 'light' : 'dark');
+        });
+
+        const selectAll = document.getElementById('select-all');
+        if (selectAll) {
+            selectAll.addEventListener('change', () => {
+                document.querySelectorAll('.row-check').forEach((checkbox) => {
+                    checkbox.checked = selectAll.checked;
+                });
+            });
+        }
+
+        const confirmOverlay = document.getElementById('confirm-overlay');
+        const confirmTitle = document.getElementById('confirm-title');
+        const confirmMessage = document.getElementById('confirm-message');
+        const confirmCancel = document.getElementById('confirm-cancel');
+        const confirmDelete = document.getElementById('confirm-delete');
+        const singleDeleteForm = document.getElementById('single-delete-form');
+        let pendingForm = null;
+        let pendingSubmitter = null;
+        let pendingAction = null;
+
+        const openConfirm = (form, submitter, title, message, action = null) => {
+            pendingForm = form;
+            pendingSubmitter = submitter;
+            pendingAction = action;
+            confirmTitle.textContent = title || 'Confirm Delete';
+            confirmMessage.textContent = message || 'This action cannot be undone.';
+            confirmOverlay.classList.add('is-open');
+            confirmOverlay.setAttribute('aria-hidden', 'false');
+            confirmCancel.focus();
+        };
+
+        const closeConfirm = () => {
+            pendingForm = null;
+            pendingSubmitter = null;
+            pendingAction = null;
+            confirmOverlay.classList.remove('is-open');
+            confirmOverlay.setAttribute('aria-hidden', 'true');
+        };
+
+        document.querySelectorAll('.confirm-form').forEach((form) => {
+            form.addEventListener('submit', (event) => {
+                event.preventDefault();
+                openConfirm(form, null, form.dataset.confirmTitle, form.dataset.confirmMessage);
+            });
+        });
+
+        document.querySelectorAll('.confirm-action').forEach((button) => {
+            button.addEventListener('click', (event) => {
+                event.preventDefault();
+                openConfirm(button.form, button, button.dataset.confirmTitle, button.dataset.confirmMessage);
+            });
+        });
+
+        document.querySelectorAll('.single-delete').forEach((button) => {
+            button.addEventListener('click', () => {
+                openConfirm(
+                    singleDeleteForm,
+                    null,
+                    button.dataset.confirmTitle,
+                    button.dataset.confirmMessage,
+                    button.dataset.action
+                );
+            });
+        });
+
+        confirmCancel.addEventListener('click', closeConfirm);
+        confirmOverlay.addEventListener('click', (event) => {
+            if (event.target === confirmOverlay) {
+                closeConfirm();
+            }
+        });
+        document.addEventListener('keydown', (event) => {
+            if (event.key === 'Escape' && confirmOverlay.classList.contains('is-open')) {
+                closeConfirm();
+            }
+        });
+        confirmDelete.addEventListener('click', () => {
+            if (!pendingForm) {
+                closeConfirm();
+                return;
+            }
+            if (pendingAction) {
+                pendingForm.action = pendingAction;
+            }
+            if (pendingSubmitter && pendingSubmitter.name) {
+                const hidden = document.createElement('input');
+                hidden.type = 'hidden';
+                hidden.name = pendingSubmitter.name;
+                hidden.value = pendingSubmitter.value;
+                pendingForm.appendChild(hidden);
+            }
+            pendingForm.submit();
+        });
+    </script>
+</body>
+</html>
