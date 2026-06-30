@@ -10,8 +10,9 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/6.0/ref/settings/
 """
 
-import os
 import sys
+import os
+from importlib.util import find_spec
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -23,15 +24,22 @@ sys.path.insert(0, str(BASE_DIR.parent))
 # See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-r+$zs!39=yn=sgawqx=mvs2qxmh(0!)t_@9ye(ltlds)mk&)40'
+SECRET_KEY = os.environ.get(
+    "SECRET_KEY",
+    "django-insecure-r+$zs!39=yn=sgawqx=mvs2qxmh(0!)t_@9ye(ltlds)mk&)40",
+)
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.environ.get("DJANGO_DEBUG", "True").lower() in ("1", "true", "yes", "on")
 
-ALLOWED_HOSTS = [
-    ".onrender.com",
-    "127.0.0.1",
-    "localhost",
+ALLOWED_HOSTS = os.environ.get(
+    "ALLOWED_HOSTS",
+    ".onrender.com,127.0.0.1,localhost",
+).split(",")
+CSRF_TRUSTED_ORIGINS = [
+    origin.strip()
+    for origin in os.environ.get("CSRF_TRUSTED_ORIGINS", "https://*.onrender.com").split(",")
+    if origin.strip()
 ]
 ENABLE_DJANGO_ADMIN = False
 LOGIN_URL = '/'
@@ -68,6 +76,9 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
+if find_spec("whitenoise"):
+    MIDDLEWARE.insert(1, 'whitenoise.middleware.WhiteNoiseMiddleware')
+
 ROOT_URLCONF = 'vfp_api.urls'
 
 TEMPLATES = [
@@ -91,16 +102,24 @@ WSGI_APPLICATION = 'vfp_api.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/6.0/ref/settings/#databases
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'vpf_offline_db',
-        'USER': 'Abhishek',
-        'PASSWORD': 'Abhishek123@',
-        'HOST': '127.0.0.1',
-        'PORT': '3307',
+DATABASE_URL = os.environ.get("DATABASE_URL")
+if DATABASE_URL:
+    import dj_database_url
+
+    DATABASES = {
+        'default': dj_database_url.parse(DATABASE_URL, conn_max_age=600),
     }
-}
+else:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.mysql',
+            'NAME': os.environ.get('DB_NAME', 'vpf_offline_db'),
+            'USER': os.environ.get('DB_USER', 'Abhishek'),
+            'PASSWORD': os.environ.get('DB_PASSWORD', 'Abhishek123@'),
+            'HOST': os.environ.get('DB_HOST', '127.0.0.1'),
+            'PORT': os.environ.get('DB_PORT', '3307'),
+        }
+    }
 
 
 # Password validation
@@ -139,3 +158,5 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 STATIC_ROOT = BASE_DIR / "staticfiles"
+if find_spec("whitenoise"):
+    STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
