@@ -17,7 +17,7 @@ Including another URLconf
 from django.contrib import admin
 from django.conf import settings
 from django.shortcuts import redirect
-from django.urls import include, path
+from django.urls import include, path, re_path
 from rest_framework import routers
 from vfp_offline_api.views import (
     SpsalesViewSet,
@@ -25,10 +25,12 @@ from vfp_offline_api.views import (
     dashboard_view,
     login_view,
     logout_view,
+    not_found_view,
     register_view,
     sales_bulk_delete_view,
     sales_delete_view,
     sales_edit_view,
+    server_error_view,
 )
 
 router = routers.DefaultRouter()
@@ -44,9 +46,13 @@ urlpatterns = [
     path('records/sales/<int:pk>/delete/', sales_delete_view, name='sales_delete'),
     path('records/sales/bulk-delete/', sales_bulk_delete_view, name='sales_bulk_delete'),
     path('logout/', logout_view, name='logout'),
-    path('', include(router.urls)),
     path('api/', include(router.urls)),
 ]
 
 if settings.ENABLE_DJANGO_ADMIN:
     urlpatterns.append(path('admin/', admin.site.urls))
+
+handler404 = 'vfp_offline_api.views.not_found_view'
+handler500 = 'vfp_offline_api.views.server_error_view'
+
+urlpatterns.append(re_path(r'^(?P<unmatched_path>.*)$', not_found_view, name='not_found'))

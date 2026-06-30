@@ -10,6 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/6.0/ref/settings/
 """
 
+import os
 import sys
 from pathlib import Path
 
@@ -25,9 +26,13 @@ sys.path.insert(0, str(BASE_DIR.parent))
 SECRET_KEY = 'django-insecure-r+$zs!39=yn=sgawqx=mvs2qxmh(0!)t_@9ye(ltlds)mk&)40'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.environ.get("DJANGO_DEBUG", "True").lower() in ("1", "true", "yes", "on")
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = [
+    ".onrender.com",
+    "127.0.0.1",
+    "localhost",
+]
 ENABLE_DJANGO_ADMIN = False
 LOGIN_URL = '/'
 LOGIN_REDIRECT_URL = '/dashboard/'
@@ -46,6 +51,12 @@ INSTALLED_APPS = [
     'vfp_offline_api',
     'rest_framework'
 ]
+
+REST_FRAMEWORK = {
+    'DEFAULT_RENDERER_CLASSES': [
+        'rest_framework.renderers.JSONRenderer',
+    ],
+}
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -127,3 +138,4 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/6.0/howto/static-files/
 
 STATIC_URL = 'static/'
+STATIC_ROOT = BASE_DIR / "staticfiles"
