@@ -15,6 +15,11 @@ import os
 from importlib.util import find_spec
 from pathlib import Path
 
+try:
+    import dj_database_url
+except ImportError:
+    dj_database_url = None
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(BASE_DIR.parent))
@@ -102,12 +107,14 @@ WSGI_APPLICATION = 'vfp_api.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/6.0/ref/settings/#databases
 
-DATABASE_URL = os.environ.get("DATABASE_URL")
-if DATABASE_URL:
-    import dj_database_url
-
+if "DATABASE_URL" in os.environ:
+    if dj_database_url is None:
+        raise ImportError("dj-database-url is required when DATABASE_URL is set.")
     DATABASES = {
-        'default': dj_database_url.parse(DATABASE_URL, conn_max_age=600),
+        "default": dj_database_url.config(
+            conn_max_age=600,
+            ssl_require=True,
+        )
     }
 else:
     DATABASES = {
