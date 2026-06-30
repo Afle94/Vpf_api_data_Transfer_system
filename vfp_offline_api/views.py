@@ -1,5 +1,6 @@
 from django.db import transaction
 from django.db.models import Count, Max, Q, Sum
+from django.conf import settings
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
@@ -10,6 +11,8 @@ from rest_framework.response import Response
 from vfp_offline_api.models import Spsales
 from vfp_offline_api.forms import RegisterForm, SpsalesForm
 from vfp_offline_api.Seriealizers import SpsalesSerializer
+from django.shortcuts import render
+
 
 
 def get_sales_summary():
@@ -300,6 +303,51 @@ def logout_view(request):
     return redirect('login')
 
 
+def error_page_view(request, exception=None, status_code=404):
+    is_debug = settings.DEBUG
+    page_title = 'Page Not Found' if status_code == 404 else 'Something Went Wrong'
+    message = 'The page you are looking for is not available or has been moved.'
+    if request.path.startswith('/admin/'):
+        page_title = 'Admin Area Disabled'
+        message = 'The Django admin area is not available on this deployment.'
+    elif request.path.startswith('/spsales/'):
+        page_title = 'Public API Page Disabled'
+        message = 'This endpoint is not available as a public browser page. Use the application dashboard instead.'
+    elif request.path.startswith('/api/') and status_code == 404:
+        page_title = 'API Endpoint Not Found'
+        message = 'The requested API endpoint does not exist.'
+    elif status_code >= 500:
+        page_title = 'Something Went Wrong'
+        message = 'We could not complete this request right now.'
+    mode_label = 'Development Mode' if is_debug else 'Production Mode'
+    mode_message = (
+        'This is a clean app error page. Technical details are hidden from the browser view.'
+        if is_debug
+        else 'Technical details are hidden to keep this application secure on cloud hosting.'
+    )
+    return render(
+        request,
+        'vfp_offline_api/error.html',
+        {
+            'status_code': status_code,
+            'page_title': page_title,
+            'message': message,
+            'mode_label': mode_label,
+            'mode_message': mode_message,
+            'path': request.path,
+        },
+        status=status_code,
+    )
+
+
+def not_found_view(request, unmatched_path=None, exception=None):
+    return error_page_view(request, exception=exception, status_code=404)
+
+
+def server_error_view(request):
+    return error_page_view(request, status_code=500)
+
+
 class SpsalesViewSet(viewsets.ModelViewSet):
     queryset = Spsales.objects.all()
     serializer_class = SpsalesSerializer
@@ -374,3 +422,5 @@ class SpsalesViewSet(viewsets.ModelViewSet):
             'created': len(to_create),
             'updated': len(to_update),
         }
+    
+    

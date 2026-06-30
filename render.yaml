@@ -1,0 +1,24 @@
+services:
+  - type: web
+    name: vfp-sales-sync
+    env: python
+    plan: free
+    buildCommand: bash build.sh
+    startCommand: gunicorn --chdir vfp_api vfp_api.wsgi:application
+    envVars:
+      - key: DJANGO_DEBUG
+        value: "False"
+      - key: ALLOWED_HOSTS
+        value: ".onrender.com"
+      - key: CSRF_TRUSTED_ORIGINS
+        value: "https://*.onrender.com"
+      - key: SECRET_KEY
+        generateValue: true
+      - key: DATABASE_URL
+        fromDatabase:
+          name: vfp-sales-sync-db
+          property: connectionString
+
+databases:
+  - name: vfp-sales-sync-db
+    plan: free
